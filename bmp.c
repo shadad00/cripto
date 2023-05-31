@@ -10,21 +10,28 @@ BITMAPFILE openBmpFile(const char * path){
         perror("open");
         return NULL;
     }
-    FILE *file = fdopen(fd, "r");
-    if (file == NULL) {
-        perror("Failed to convert file descriptor");
+
+    struct stat fileStats;
+    if (fstat(fd, &fileStats ) != 0){
+        perror("fstat");
         return NULL;
     }
 
-    BITMAPFILEHEADER *   header = malloc(sizeof(BITMAPFILEHEADER) );
-    if ( fgets(header,sizeof(BITMAPFILEHEADER) + 1 ,file) != NULL){
-        perror("Unable to retrieve header information.")
+    int fileSize = fileStats.st_size;
+
+    void *   filePointer = malloc(fileSize );
+    if ( read(fd, header  ,fileSize) != fileSize){
+        perror("Unable to read file")
         return NULL;
     }
 
-    uint32_t  offset = header->bfOffBits;
-    uint8_t  * bitmap = malloc(header->bfSize);
+    BITMAPFILEHEADER * headerPointer = (BITMAPFILEHEADER *) filePointer;
+    int bitMapOffset = headerPointer->bfOffBits;
+    uint8_t * bitMapPointer = (uint8_t * )(filePointer + bitMapOffset);
 
-
+    BITMAPFILE *  bitMapFile = malloc(sizeof (BITMAPFILE));
+    bitMapFile->header = headerPointer;
+    bitMapFile->pixels = bitMapPointer;
+    return bitMapFile;
 }
 

@@ -29,7 +29,8 @@ typedef struct BITMAPFILE{
     uint8_t * pixels;
 } BITMAPFILE;
 
-BITMAPFILE openBmpFile(const char * path);
+
+BITMAPFILE *  openBmpFile(const char * path);
 
 
 #endif //CRIPTO_BMP_H
