@@ -31,5 +31,5 @@ ss: $(OBJ) $(BMP_SRC)
 
 .PHONY: clean
 clean:
-	@rm -f $(OBJ) $(SERVER_OBJ) $(COOL_OBJ) $(COOL_EXEC) $(SERVER_EXEC)
+	@rm -f $(OBJ) $(SS_EXEC)
 #find . -name '*.o' -type f -delete
