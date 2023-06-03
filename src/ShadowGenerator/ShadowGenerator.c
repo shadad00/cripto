@@ -22,6 +22,7 @@ shadowGenerator * initialize(struct params * params){
     return shadowGenerator;
 }
 
+
 void distributeSecret(shadowGenerator * shadowGenerator){
     uint32_t shadowPoints = (shadowGenerator->file->header->imageSize) / (shadowGenerator->k - 1);
     struct shadow ** shadowArray  = initializeShadowArray(shadowGenerator, shadowPoints);

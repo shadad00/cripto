@@ -42,8 +42,7 @@ void distribute(struct params * params){
 
 
 void retrieve(struct params * params ){
-    shadowGenerator * generator = initialize(params);
+    shadowGenerator * generator = initRetriever(params);
     initializeShadows(generator);
-
-    return;
+    retrieveSecret(generator);
 }

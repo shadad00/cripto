@@ -28,6 +28,7 @@ typedef struct shadowGenerator{
     uint8_t  n;
     shadow ** generatedShadows;
     char ** imageFiles;
+    char * creatingFileName;
 } shadowGenerator;
 
 shadowGenerator * initialize(struct params * params);

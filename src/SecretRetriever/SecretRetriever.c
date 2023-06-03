@@ -3,6 +3,21 @@
 //
 #include "SecretRetriever.h"
 static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile);
+static uint8_t  * interpolate(uint8_t * aPoints, uint8_t * bPoints);
+static void checkCoefficients(uint8_t * coefficients);
+
+
+
+shadowGenerator * initRetriever(struct params * params){
+    struct shadowGenerator * shadowGenerator = malloc(sizeof(shadowGenerator));
+    shadowGenerator->k = params->k;
+    shadowGenerator->n = params -> n;
+    openDirectory(shadowGenerator, params->directory);
+    shadowGenerator->creatingFileName = malloc(strlen(params->file));
+    strcpy(shadowGenerator->creatingFileName, params->file);
+    return shadowGenerator;
+}
+
 
 
 void initializeShadows(shadowGenerator * generator){
@@ -20,6 +35,43 @@ void initializeShadows(shadowGenerator * generator){
 
     generator->generatedShadows = parsedShadows;
 }
+
+void retrieveSecret(shadowGenerator * generator){
+    uint8_t  k = generator->k ;
+    uint8_t  * imagePointer = generator->file->pixels;
+    int currentBlock = 0;
+
+    uint8_t  * aPoints = malloc(generator->k);
+    uint8_t  * bPoints = malloc(generator->k);
+
+    while( currentBlock < generator->generatedShadows[0]->shadowNumber){
+
+        for (int i = 0; i < k ; i ++){
+            int shadowNumber = generator->generatedShadows[i]->shadowNumber;
+            aPoints[shadowNumber] = generator->generatedShadows[i]->points[currentBlock];
+            bPoints[shadowNumber] = generator->generatedShadows[i]->points[currentBlock + 1];
+        }
+        uint8_t * coefficients = interpolate(aPoints, bPoints);
+        checkCoefficients(coefficients);
+        memcpy(imagePointer, coefficients, (2*k) - 2);
+
+        imagePointer += (2*k) - 2;
+        currentBlock ++ ;
+    }
+
+
+    int fd = open(generator->creatingFileName, O_WRONLY | O_CREAT);
+    if (fd == -1) {
+        perror("open");
+        return ;
+    }
+    write(fd, generator->file, generator->file->header->imageSize);
+
+    close(fd);
+}
+
+
+
 
 
 
@@ -44,4 +96,14 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile){
     }
 
     return shadow;
+}
+
+
+static uint8_t  * interpolate(uint8_t * aPoints, uint8_t * bPoints){
+    return NULL;
+}
+
+
+void checkCoefficients(uint8_t * coefficients){
+    return ;
 }
