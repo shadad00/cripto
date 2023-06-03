@@ -14,7 +14,7 @@ struct params * validateParams(int argc, char * argv[]){
         exit(-1);
     }
     struct params * params = malloc(sizeof (struct params));
-    params->action = strcmp(argv[1], "d")? DISTRIBUTE : RETRIEVE;
+    params->action = strcmp(argv[1], "d") == 0 ? DISTRIBUTE : RETRIEVE;
     params->file = malloc(strlen(argv[2]));
     strcpy(params->file, argv[2]);
     params->k = atoi(argv[3]);

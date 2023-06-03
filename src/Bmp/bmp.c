@@ -27,7 +27,6 @@ bmpFile *  openBmpFile(const char * path){
         perror("Unable to read file");
         return NULL;
     }
-    close(fd);
 
     bmpHeader * headerPointer = (bmpHeader *) filePointer;
     uint32_t pixelsOffset = headerPointer->pixelsOffset;

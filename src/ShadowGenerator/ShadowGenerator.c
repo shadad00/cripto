@@ -66,6 +66,7 @@ void hideSecret(shadowGenerator * shadowGenerator){
         shadow * currentShadow = shadowGenerator->generatedShadows[i];
         hideShadow(shadowGenerator->k,currentImageFile, currentShadow);
         write(currentImageFile->fd , currentImageFile, currentImageFile->header->fileSize);
+        close(currentImageFile->fd);
     }
 }
 
@@ -135,7 +136,7 @@ static void insertBits(uint8_t  * imagePixelPointer, uint8_t  *shadowPointer, ui
     uint8_t  bits[bytesUsedFromImage];
 
     for(int i = 0; i < bytesUsedFromImage ; i++){
-        bits[i] = lsb4 ? ((*shadowPointer & twoSignificant[i]) >> (i * 2)) : ((*shadowPointer & fourSignificant[i]) >> (i * 4));
+        bits[i] = lsb4 ? ((*shadowPointer & fourSignificant[i]) >> (i * 4)) : ((*shadowPointer & twoSignificant[i]) >> (i * 2));
     }
 
     for (int i = 0 ; i < bytesUsedFromImage ; i++){
