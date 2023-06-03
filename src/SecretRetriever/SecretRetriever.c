@@ -3,8 +3,9 @@
 //
 #include "SecretRetriever.h"
 static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile);
-static uint8_t  * interpolate(uint8_t * aPoints, uint8_t * bPoints);
+static uint8_t  * interpolate(uint8_t  k , uint8_t * aPoints, uint8_t * bPoints);
 static void checkCoefficients(uint8_t  k ,uint8_t * coefficients);
+static uint8_t  * interpolatePolynomial(uint8_t n , uint8_t * points) ;
 
 
 
@@ -51,7 +52,7 @@ void retrieveSecret(shadowGenerator * generator){
             aPoints[shadowNumber] = generator->generatedShadows[i]->points[currentBlock];
             bPoints[shadowNumber] = generator->generatedShadows[i]->points[currentBlock + 1];
         }
-        uint8_t * coefficients = interpolate(aPoints, bPoints);
+        uint8_t * coefficients = interpolate(k, aPoints, bPoints);
         checkCoefficients(generator->k, coefficients);
         memcpy(imagePointer, coefficients, k);
         memcpy(imagePointer, coefficients + k + 2, k - 2);
@@ -100,8 +101,11 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile){
 }
 
 
-static uint8_t  * interpolate(uint8_t * aPoints, uint8_t * bPoints){
-    return NULL;
+static uint8_t  * interpolate(uint8_t  k , uint8_t * aPoints, uint8_t * bPoints){
+    uint8_t  * coefficient = malloc( 2* k* sizeof(uint8_t));
+    memcpy(coefficient, interpolatePolynomial(k, aPoints), k);
+    memcpy(coefficient + k , interpolatePolynomial(k , bPoints) , k);
+    return  coefficient;
 }
 
 
@@ -114,9 +118,37 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
             valid = 1;
     }
     if (! valid){
-        printf("One invalid shadow was provided. ")
+        printf("One invalid shadow was provided. ");
         exit(-1);
     }
 
     return ;
 }
+
+
+static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points){
+
+    uint8_t  * coefficients = (uint8_t*) malloc(k * sizeof(uint8_t));
+
+    int qc = 0;
+    int yPrimes[k];
+    while (qc < k) {
+        int currentCoefficient = 0;
+
+        int top = k-qc;
+        for (int i = 0; i<top; i++) {
+            int y = !qc ? points[i] : (yPrimes[i] - coefficients[qc-1]) * inverses[i];
+            y = Z_p(y);
+            yPrimes[i] = y;
+            int li = 1;
+            for (int j=0; j<top; j++)
+                li *= i == j ? 1 : Z_p(-1*j*inverses[i-j]);
+            currentCoefficient += Z_p(y*li);
+        }
+
+        coefficients[qc++] = (uint8_t)Z_p(currentCoefficient);
+    }
+
+    return coefficients;
+}
+
