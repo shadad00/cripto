@@ -6,8 +6,6 @@
 static  shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint32_t shadowPoints);
 static uint8_t evaluatePolynomial(shadowGenerator * shadowGenerator, uint8_t * coefficients, uint8_t value);
 
-
-
 shadowGenerator * initialize(struct params * params){
     struct shadowGenerator * shadowGenerator = malloc(sizeof(shadowGenerator));
     shadowGenerator->file = openBmpFile(params->file);
@@ -16,7 +14,7 @@ shadowGenerator * initialize(struct params * params){
     return shadowGenerator;
 }
 
-struct shadow ** distributeSecret(shadowGenerator * shadowGenerator){
+void distributeSecret(shadowGenerator * shadowGenerator){
     uint32_t shadowPoints = (shadowGenerator->file->header->imageSize) / (shadowGenerator->k - 1);
     struct shadow ** shadowArray  = initializeShadowArray(shadowGenerator, shadowPoints);
 
@@ -33,9 +31,11 @@ struct shadow ** distributeSecret(shadowGenerator * shadowGenerator){
 
         memcpy(aCoefficients, pixelPoints, k);
         memcpy(bCoefficients + 2, pixelPoints + k, k-2 );
-        uint8_t random = rand();
-        bCoefficients[0] =  Z_p(- random * aCoefficients[0]);
-        bCoefficients[1] =  Z_p(- random * aCoefficients[1]);
+        uint8_t random = rand() + 1 ;  //avoid the random number to be zero.
+        a_0 = aCoefficients[0] == 0 ? 1: aCoefficients[0];
+        a_1 = aCoefficients[1] == 0 ? 1: aCoefficients[1];
+        bCoefficients[0] =  Z_p(- random * a_0);
+        bCoefficients[1] =  Z_p(- random * a_1);
 
         for (int j = 0; j < shadowGenerator->n; j++){
             shadowArray[j]->points[currentBlock] = evaluatePolynomial(shadowGenerator,
@@ -48,7 +48,7 @@ struct shadow ** distributeSecret(shadowGenerator * shadowGenerator){
         currentBlock +=2;
     }
 
-    return shadowArray;
+    shadowGenerator->generatedShadows =  shadowArray;
 }
 
 

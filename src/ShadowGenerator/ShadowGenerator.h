@@ -14,20 +14,20 @@
 #define Z_p(x) ( (x) < 0 ? (((x)*(-1)*(P-1))%P) : ((x)%P))
 
 
-
-typedef struct shadowGenerator{
-    bmpFile * file;
-    uint8_t  k;
-    uint8_t  n;
-} shadowGenerator;
-
 typedef struct shadow{
     uint8_t shadowNumber;
     uint8_t * points;
 } shadow;
 
+typedef struct shadowGenerator{
+    bmpFile * file;
+    uint8_t  k;
+    uint8_t  n;
+    shadow ** generatedShadows;
+} shadowGenerator;
+
 shadowGenerator * initialize(struct params * params);
 
-shadow ** distributeSecret(shadowGenerator * shadowGenerator);
+void distributeSecret(shadowGenerator * shadowGenerator);
 
 #endif //CRIPTO_SHADOWGENERATOR_H
