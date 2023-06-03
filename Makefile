@@ -5,12 +5,16 @@ LDFLAGS= -pthread
 #Si se agrega un directorio bajo src agregar una variable _DIR al final de estas siguiendo el patron
 SRC_DIR= src
 BMP_DIR= $(SRC_DIR)/Bmp
+SHADOW_GEN_DIR= $(SRC_DIR)/ShadowGenerator
+
 
 SS_EXEC= ss
 
 #Si se agrega un directorio para compilar agregar un SRC+= al final de estas siguiendo el patron
 SRC= $(wildcard $(SRC_DIR)/*.c)
 SRC+= $(wildcard $(BMP_DIR)/*.c)
+SRC+= $(wildcard $(SHADOW_GEN_DIR)/*.c)
+
 
 #BMP_SRC = $(wildcard $(BMP_DIR)/*.c)
 
