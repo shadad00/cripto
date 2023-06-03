@@ -2,9 +2,9 @@
 // Created by shadad on 31/05/23.
 //
 
-#include "bmp.h"
+#include "./bmp.h"
 
-BITMAPFILE *  openBmpFile(const char * path){
+bmpFile *  openBmpFile(const char * path){
     int fd = open(path, O_RDONLY);
     if (fd == -1) {
         perror("open");
@@ -14,24 +14,29 @@ BITMAPFILE *  openBmpFile(const char * path){
     struct stat fileStats;
     if (fstat(fd, &fileStats ) != 0){
         perror("fstat");
+        close(fd);
         return NULL;
     }
 
     int fileSize = fileStats.st_size;
 
-    void *   filePointer = malloc(fileSize );
+
+    void * filePointer = malloc(fileSize );
+
     if ( read(fd, filePointer  ,fileSize) != fileSize){
         perror("Unable to read file");
         return NULL;
     }
+    close(fd);
 
-    BITMAPFILEHEADER * headerPointer = (BITMAPFILEHEADER *) filePointer;
-    int bitMapOffset = headerPointer->bfOffBits;
-    uint8_t * bitMapPointer = ((uint8_t * )filePointer) + bitMapOffset;
+    bmpHeader * headerPointer = (bmpHeader *) filePointer;
+    uint32_t pixelsOffset = headerPointer->pixelsOffset;
 
-    BITMAPFILE *  bitMapFile = malloc(sizeof (BITMAPFILE));
+    uint8_t * pixelsPointer = ((uint8_t * )filePointer) + pixelsOffset;
+
+    bmpFile *  bitMapFile = malloc(sizeof (bmpFile));
     bitMapFile->header = headerPointer;
-    bitMapFile->pixels = bitMapPointer;
+    bitMapFile->pixels = pixelsPointer;
     return bitMapFile;
 }
 

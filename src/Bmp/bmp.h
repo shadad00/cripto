@@ -6,31 +6,46 @@
 #define CRIPTO_BMP_H
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <string.h>
+
+#pragma pack(1)
+
+typedef struct bmpHeader {
+    uint16_t fileType;
+    uint32_t fileSize;
+    uint16_t reserved1;
+    uint16_t reserved2;
+    uint32_t pixelsOffset;
+    uint32_t headerSize;
+    uint32_t width;
+    uint32_t height;
+    uint16_t planes;
+    uint16_t bitsPerPixel;
+    uint32_t compressionMethod;
+    uint32_t imageSize;
+    uint32_t xPixelsPerMeter;
+    uint32_t yPixelsPerMeter;
+    uint32_t numColors;
+    uint32_t importantColors;
+} bmpHeader;
+
+#pragma pack()
 
 
-
-
-typedef struct tagBITMAPFILEHEADER {
-    uint16_t bfType; //The file type; must be BM.
-    uint32_t bfSize; // The size, in bytes, of the bitmap file.
-    uint16_t bfReserved1; //must be zero, then will be used to store shadow number
-    uint16_t bfReserved2; // must be zero
-    uint32_t bfOffBits;  // byte offset from the beginning of the header to the bitmap bits.
-} BITMAPFILEHEADER;
-
-typedef struct BITMAPFILE{
-    BITMAPFILEHEADER  * header;
+typedef struct bmpFile{
+    bmpHeader  * header;
     uint8_t * pixels;
-} BITMAPFILE;
+} bmpFile;
 
 
-BITMAPFILE *  openBmpFile(const char * path);
+bmpFile *  openBmpFile(const char * path);
 
 
 #endif //CRIPTO_BMP_H
