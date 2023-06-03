@@ -33,10 +33,14 @@ typedef struct shadowGenerator{
 
 shadowGenerator * initialize(struct params * params);
 
+//generates the shadows from the points on the image.
 void distributeSecret(shadowGenerator * shadowGenerator);
 
+//hides the evaluation by using the lbx method.
 void hideSecret(shadowGenerator * shadowGenerator);
 
+
+// function for accessing the bmp files on the directory passed as parameter.
 void openDirectory(shadowGenerator * generator, char * directoryPath);
 
 #endif //CRIPTO_SHADOWGENERATOR_H

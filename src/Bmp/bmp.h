@@ -46,6 +46,8 @@ typedef struct bmpFile{
 } bmpFile;
 
 
+
+//used to parse a bmp file.
 bmpFile *  openBmpFile(const char * path);
 
 

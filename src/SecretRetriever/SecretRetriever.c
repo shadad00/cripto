@@ -2,10 +2,19 @@
 // Created by shadad on 03/06/23.
 //
 #include "SecretRetriever.h"
+
+//inverse the lsbx method and create the shadows from the image passed as parameters.
 static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile);
+
+// take the aPoints and bPoints and make a coefficient vector with the corresponding polynomial.
 static uint8_t  * interpolate(uint8_t  k , uint8_t * aPoints, uint8_t * bPoints);
-static void checkCoefficients(uint8_t  k ,uint8_t * coefficients);
+//aux function for interpolate one array of points.
 static uint8_t  * interpolatePolynomial(uint8_t n , uint8_t * points) ;
+
+
+//check if all shadows are valid by looking the random value that
+// valids the equation on the generation.
+static void checkCoefficients(uint8_t  k ,uint8_t * coefficients);
 
 
 
@@ -125,7 +134,7 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
     }
     if (! valid){
         printf("One invalid shadow was provided. ");
-//        exit(-1);
+        exit(-1);
     }
 
     return ;
