@@ -10,6 +10,8 @@ uint8_t twoSignificant[] = {0xF0, 0x0F};
 static  shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint32_t shadowPoints);
 static uint8_t evaluatePolynomial(shadowGenerator * shadowGenerator, uint8_t * coefficients, uint8_t value);
 static void insertBits(uint8_t  *imagePixelPointer, uint8_t  *shadowPointer, uint8_t k);
+static void openDirectory(shadowGenerator * generator, char * directoryPath);
+static void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow);
 
 
 shadowGenerator * initialize(struct params * params){
@@ -17,6 +19,7 @@ shadowGenerator * initialize(struct params * params){
     shadowGenerator->file = openBmpFile(params->file);
     shadowGenerator->k = params->k;
     shadowGenerator->n = params -> n;
+    openDirectory(shadowGenerator, params->directory);
     return shadowGenerator;
 }
 
@@ -57,7 +60,17 @@ void distributeSecret(shadowGenerator * shadowGenerator){
     shadowGenerator->generatedShadows =  shadowArray;
 }
 
-void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow){
+void hideSecret(shadowGenerator * shadowGenerator){
+    for (int i = 0 ; i < shadowGenerator -> n ; i ++){
+        bmpFile  * currentImageFile = openBmpFile(shadowGenerator->imageFiles[i]);
+        shadow * currentShadow = shadowGenerator->generatedShadows[i];
+        hideShadow(shadowGenerator->k,currentImageFile, currentShadow);
+        write(currentImageFile->fd , currentImageFile, currentImageFile->header->fileSize);
+    }
+}
+
+
+static void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow){
     image->header->reserved1 = hidingShadow->shadowNumber; //save the shadow number.
     uint8_t * imagePixelPointer = image->pixels;
     uint8_t * shadowPointer = hidingShadow->points;
@@ -66,6 +79,30 @@ void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow){
             shadowPointer += 1 ; //go to the next point;
             imagePixelPointer += (k == 3 || k == 4) ? 2 : 4;
     }
+}
+
+static void openDirectory(shadowGenerator * generator, char * directoryPath){
+    DIR * directory = opendir(directoryPath);
+    if(directory == NULL){
+        perror("Unable to open the given directory");
+        return;
+    }
+    char ** fileNames = malloc(generator->n * sizeof(char * )) ;
+
+    int currentFile = 0;
+    struct dirent * entry;
+    while ((entry = readdir(directory)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+        uint64_t directoryLength = strlen(directoryPath);
+        fileNames[currentFile] = malloc(directoryLength + 1 + strlen(entry->d_name));
+        strcpy(fileNames[currentFile], directoryPath);
+        strcpy(fileNames[currentFile] + directoryLength, "/");
+        strcpy(fileNames[currentFile] + directoryLength + 1, entry->d_name);
+        currentFile ++;
+    }
+    generator->imageFiles = fileNames;
 }
 
 static shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint32_t shadowPoints){

@@ -5,7 +5,7 @@
 #include "./bmp.h"
 
 bmpFile *  openBmpFile(const char * path){
-    int fd = open(path, O_RDONLY);
+    int fd = open(path, O_RDWR);
     if (fd == -1) {
         perror("open");
         return NULL;
@@ -37,6 +37,7 @@ bmpFile *  openBmpFile(const char * path){
     bmpFile *  bitMapFile = malloc(sizeof (bmpFile));
     bitMapFile->header = headerPointer;
     bitMapFile->pixels = pixelsPointer;
+    bitMapFile -> fd = fd;
     return bitMapFile;
 }
 

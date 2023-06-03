@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include "../Bmp/bmp.h"
 #include "../utils.h"
 #define P 251
@@ -25,10 +27,13 @@ typedef struct shadowGenerator{
     uint8_t  k;
     uint8_t  n;
     shadow ** generatedShadows;
+    char ** imageFiles;
 } shadowGenerator;
 
 shadowGenerator * initialize(struct params * params);
 
 void distributeSecret(shadowGenerator * shadowGenerator);
+
+void hideSecret(shadowGenerator * shadowGenerator);
 
 #endif //CRIPTO_SHADOWGENERATOR_H

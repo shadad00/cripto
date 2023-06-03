@@ -5,11 +5,12 @@
 
 
 #include "utils.h"
-#include "./ShadowGenerator/ShadowGenerator.h"
 
 
 int main(int argc, char * argv[]){
     struct params * params = validateParams(argc, argv);
-    shadowGenerator * generator = initialize(params);
-    distributeSecret(generator);
+    if (params->action == DISTRIBUTE)
+        distribute(params);
+    else
+        retrieve(params);
 }

@@ -2,6 +2,8 @@
 // Created by shadad on 03/06/23.
 //
 #include "utils.h"
+#include "./ShadowGenerator/ShadowGenerator.h"
+
 
 uint8_t validK[] = {3,4,5,6,7,8};
 
@@ -27,4 +29,17 @@ struct params * validateParams(int argc, char * argv[]){
     strcpy(params->directory, argv[4]);
     params->n = SHADOWS_NUMBER;
     return params;
+}
+
+
+
+void distribute(struct params * params){
+    shadowGenerator * generator = initialize(params);
+    distributeSecret(generator);
+    hideSecret(generator);
+}
+
+
+void retrieve(struct params * params ){
+    return;
 }

@@ -42,6 +42,7 @@ typedef struct bmpHeader {
 typedef struct bmpFile{
     bmpHeader  * header;
     uint8_t * pixels;
+    int fd ;
 } bmpFile;
 
 

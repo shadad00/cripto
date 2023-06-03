@@ -26,4 +26,9 @@ struct params{
 
 struct params * validateParams(int argc, char * argv[]);
 
+void distribute(struct params * params);
+
+void retrieve(struct params * params);
+
+
 #endif //CRIPTO_UTILS_H
