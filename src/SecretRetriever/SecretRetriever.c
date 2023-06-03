@@ -31,8 +31,11 @@ void initializeShadows(shadowGenerator * generator){
     }
 
     //copy the header file for the generating image.
-    generator->file = calloc(currentImageFile->header->fileSize, 1);
-    memcpy(generator->file, currentImageFile->header, currentImageFile->header->fileSize - currentImageFile->header->imageSize);
+    generator->file = malloc(sizeof(bmpFile * ));
+    int headerSize = currentImageFile->header->fileSize - currentImageFile->header->imageSize;
+    generator->file->header = malloc(headerSize);
+    memcpy(generator->file->header, currentImageFile->header, headerSize);
+    generator->file->pixels = malloc(generator->file->header->imageSize);
 
     generator->generatedShadows = parsedShadows;
 }
@@ -67,8 +70,11 @@ void retrieveSecret(shadowGenerator * generator){
         perror("open");
         return ;
     }
-    write(fd, generator->file, generator->file->header->imageSize);
 
+    //save the retrieved image.
+    int headerSize = generator->file->header->fileSize - generator->file->header->imageSize;
+    write(fd, generator->file->header, headerSize);
+    write(fd, generator->file->pixels, generator->file->header->imageSize);
     close(fd);
 }
 
@@ -119,7 +125,7 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
     }
     if (! valid){
         printf("One invalid shadow was provided. ");
-        exit(-1);
+//        exit(-1);
     }
 
     return ;
