@@ -136,13 +136,12 @@ static void insertBits(uint8_t  * imagePixelPointer, uint8_t  *shadowPointer, ui
     uint8_t  bits[bytesUsedFromImage];
 
     for(int i = 0; i < bytesUsedFromImage ; i++){
-        bits[i] = lsb4 ? ((*shadowPointer & fourSignificant[i]) >> (i * 4)) : ((*shadowPointer & twoSignificant[i]) >> (i * 2));
+        bits[i] = !lsb4 ? ((*shadowPointer & fourSignificant[i]) >> ((bytesUsedFromImage - i -1) * 2)) : ((*shadowPointer & twoSignificant[i]) >> ((bytesUsedFromImage - i -1) * 4));
     }
 
-    for (int i = 0 ; i < bytesUsedFromImage ; i++){
-        int and = lsb4 ? 0xF0 : 0xFC;  // 4 o 6 MSB.
-        imagePixelPointer[i] = imagePixelPointer[i] & and;
-        imagePixelPointer[i] += bits[i];  // add the 4 or 6 lsb .
-    }
+    int and = lsb4 ? 0xF0 : 0xFC;  // 4 o 6 MSB.
+    for (int i = 0 ; i < bytesUsedFromImage ; i++)
+        imagePixelPointer[i] = Z_p((imagePixelPointer[i] & and) + bits[i]);
+
 
 }
