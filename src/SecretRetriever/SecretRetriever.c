@@ -8,10 +8,15 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile);
 void initializeShadows(shadowGenerator * generator){
     shadow ** parsedShadows = malloc(generator->k * (sizeof(shadow *) ));
 
+    bmpFile  * currentImageFile;
     for (int i = 0 ; i < generator -> k ; i ++){
-        bmpFile  * currentImageFile = openBmpFile(generator->imageFiles[i]);
+        currentImageFile = openBmpFile(generator->imageFiles[i]);
         parsedShadows[i] = fromImageToShadow(generator->k, currentImageFile);
     }
+
+    //copy the header file for the generating image.
+    generator->file = calloc(currentImageFile->header->fileSize, 1);
+    memcpy(generator->file, currentImageFile->header, currentImageFile->header->fileSize - currentImageFile->header->imageSize);
 
     generator->generatedShadows = parsedShadows;
 }
