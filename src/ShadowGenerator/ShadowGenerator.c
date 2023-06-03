@@ -10,7 +10,6 @@ uint8_t twoSignificant[] = {0xF0, 0x0F};
 static  shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint32_t shadowPoints);
 static uint8_t evaluatePolynomial(shadowGenerator * shadowGenerator, uint8_t * coefficients, uint8_t value);
 static void insertBits(uint8_t  *imagePixelPointer, uint8_t  *shadowPointer, uint8_t k);
-static void openDirectory(shadowGenerator * generator, char * directoryPath);
 static void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow);
 
 
@@ -82,7 +81,7 @@ static void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow){
     }
 }
 
-static void openDirectory(shadowGenerator * generator, char * directoryPath){
+void openDirectory(shadowGenerator * generator, char * directoryPath){
     DIR * directory = opendir(directoryPath);
     if(directory == NULL){
         perror("Unable to open the given directory");

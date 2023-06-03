@@ -36,4 +36,6 @@ void distributeSecret(shadowGenerator * shadowGenerator);
 
 void hideSecret(shadowGenerator * shadowGenerator);
 
+void openDirectory(shadowGenerator * generator, char * directoryPath);
+
 #endif //CRIPTO_SHADOWGENERATOR_H

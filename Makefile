@@ -6,6 +6,7 @@ LDFLAGS= -pthread
 SRC_DIR= src
 BMP_DIR= $(SRC_DIR)/Bmp
 SHADOW_GEN_DIR= $(SRC_DIR)/ShadowGenerator
+SECRET_RETRIEVER_DIR= $(SRC_DIR)/SecretRetriever
 
 
 SS_EXEC= ss
@@ -14,6 +15,8 @@ SS_EXEC= ss
 SRC= $(wildcard $(SRC_DIR)/*.c)
 SRC+= $(wildcard $(BMP_DIR)/*.c)
 SRC+= $(wildcard $(SHADOW_GEN_DIR)/*.c)
+SRC+= $(wildcard $(SECRET_RETRIEVER_DIR)/*.c)
+
 
 
 #BMP_SRC = $(wildcard $(BMP_DIR)/*.c)

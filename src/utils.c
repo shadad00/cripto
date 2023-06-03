@@ -3,6 +3,7 @@
 //
 #include "utils.h"
 #include "./ShadowGenerator/ShadowGenerator.h"
+#include "./SecretRetriever/SecretRetriever.h"
 
 
 uint8_t validK[] = {3,4,5,6,7,8};
@@ -41,5 +42,8 @@ void distribute(struct params * params){
 
 
 void retrieve(struct params * params ){
+    shadowGenerator * generator = initialize(params);
+    initializeShadows(generator);
+
     return;
 }
