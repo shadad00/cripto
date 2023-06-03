@@ -16,6 +16,7 @@
 
 typedef struct shadow{
     uint8_t shadowNumber;
+    uint32_t pointNumber;
     uint8_t * points;
 } shadow;
 
