@@ -155,23 +155,25 @@ static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points, uint8_t * 
 
     uint8_t  * coefficients = (uint8_t*) malloc(k * sizeof(uint8_t));
 
-    int qc = 0;
+    int currentCoeff = 0;
     int yPrimes[k];
-    while (qc < k) {
-        int currentCoefficient = 0;
 
-        int top = k-qc;
+    while (currentCoeff < k) {
+        int currentCoefficient = 0;
+        int top = k-currentCoeff;
+
         for (int i = 0; i<top; i++) {
-            int y = !qc ? points[i] : (yPrimes[i] - coefficients[qc-1]) * inverses[Z_p(xCoordinates[i])];
-            y = Z_p(y);
-            yPrimes[i] = y;
+            int y = currentCoeff == 0 ? points[i] : (yPrimes[i] - coefficients[currentCoeff-1]) * inverses[Z_p(xCoordinates[i])];
+            yPrimes[i]  = Z_p(y);
             int li = 1;
-            for (int j=0; j<top; j++)
-                li *= i == j ? 1 : Z_p(-1*xCoordinates[j]*inverses[Z_p(xCoordinates[i]- xCoordinates[j])]);
-            currentCoefficient += Z_p(y*li);
+            for (int j=0; j<top; j++){
+                if( j != i)
+                    li *= Z_p(-1*xCoordinates[j]*inverses[Z_p(xCoordinates[i]- xCoordinates[j])]);
+            }
+            currentCoefficient += Z_p(yPrimes[i]*li);
         }
 
-        coefficients[qc++] = (uint8_t)Z_p(currentCoefficient);
+        coefficients[currentCoeff++] = (uint8_t)Z_p(currentCoefficient);
     }
 
     return coefficients;
