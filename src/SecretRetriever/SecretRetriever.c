@@ -39,35 +39,37 @@ void initializeShadows(shadowGenerator * generator){
         parsedShadows[i] = fromImageToShadow(generator->k, currentImageFile);
     }
 
+    //save the shadows.
+    generator->generatedShadows = parsedShadows;
+
     //copy the header file for the generating image.
     generator->file = malloc(sizeof(bmpFile * ));
     int headerSize = currentImageFile->header->fileSize - currentImageFile->header->imageSize;
-    generator->file->header = malloc(headerSize);
+    generator->file->header = malloc(headerSize * sizeof (uint8_t));
     memcpy(generator->file->header, currentImageFile->header, headerSize);
     generator->file->pixels = malloc(generator->file->header->imageSize);
 
-    generator->generatedShadows = parsedShadows;
 }
 
 void retrieveSecret(shadowGenerator * generator){
     uint8_t  k = generator->k ;
     uint8_t  * imagePointer = generator->file->pixels;
-    int currentBlock = 0;
+    uint32_t currentBlock = 0;
 
     uint8_t  * aPoints = malloc(generator->k);
     uint8_t  * bPoints = malloc(generator->k);
 
-    while( currentBlock < generator->generatedShadows[0]->shadowNumber){
+    while( currentBlock < generator->generatedShadows[0]->pointNumber){
 
-        for (int i = 0; i < k ; i ++){
+        for (int i = 0; i < k ; i ++){ //todo: shadowNumber is between 1 and k.
             int shadowNumber = generator->generatedShadows[i]->shadowNumber;
             aPoints[shadowNumber] = generator->generatedShadows[i]->points[currentBlock];
             bPoints[shadowNumber] = generator->generatedShadows[i]->points[currentBlock + 1];
         }
         uint8_t * coefficients = interpolate(k, aPoints, bPoints);
         checkCoefficients(generator->k, coefficients);
-        memcpy(imagePointer, coefficients, k);
-        memcpy(imagePointer, coefficients + k + 2, k - 2);
+        memcpy(imagePointer, coefficients, k); // saving a_0 .... a_k-1 coeff
+        memcpy(imagePointer, coefficients + k + 2, k - 2); //save b_2 .. b_k-1 coeff
 
         imagePointer += (2*k) - 2;
         currentBlock ++ ;
@@ -99,17 +101,24 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile){
     shadow->points = malloc(shadow->pointNumber);
 
     int lsb4 = ( k == 3 || k == 4 ) ? 1 : 0;
-    int shadowGenByImage= ( lsb4 ) ? 2 : 4;
-    int shifter = lsb4 ? 4 : 2 ;
+    int ImageBytesToShadowByte= ( lsb4 ) ? 2 : 4; // if lsb4 you need two uint8_t from image to generate a shadow uint8_t
+    int bitOperator = lsb4 ? 0x0f:0x03; // four or two least significant bits.
+    uint8_t  lsb4Shifter[] = {4, 0};
+    uint8_t  lsb2Shifter[] = {6,4,2, 0};
 
-    int current = 0;
-    while(current < shadow->shadowNumber){
-        shadow->points[current] = 0;
-        for(int i = 0 ; i < shadowGenByImage; i++){
-            shadow->points[current] += imageFile->pixels[i] >>  (shifter * (shadowGenByImage - i) );
-            shadow->points[current] = shadow->points[current] << shifter;
+
+
+    uint64_t currentShadowBlock = 0;
+    while(currentShadowBlock < shadow->pointNumber){
+        shadow->points[currentShadowBlock] = 0;
+        uint8_t  currentShifter = 0;
+        for(uint64_t i = 2 * currentShadowBlock ; i < (2* currentShadowBlock + ImageBytesToShadowByte); i++){
+            shadow->points[currentShadowBlock] += imageFile->pixels[i]  & bitOperator;
+            uint8_t shifter = lsb4 ? lsb4Shifter[currentShifter] : lsb2Shifter[currentShifter];
+            currentShifter++;
+            shadow->points[currentShadowBlock] = shadow->points[currentShadowBlock] << shifter;
         }
-        current++;
+        currentShadowBlock++;
     }
 
     return shadow;
@@ -133,8 +142,8 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
             valid = 1;
     }
     if (! valid){
-        printf("One invalid shadow was provided. ");
-        exit(-1);
+//        printf("One invalid shadow was provided. ");
+//        exit(-1);
     }
 
     return ;
