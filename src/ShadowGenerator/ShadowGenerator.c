@@ -139,10 +139,17 @@ static void insertBits(uint8_t  * imagePixelPointer, uint8_t  *shadowPointer, ui
     int lsb4 = ( k == 3 || k == 4 ) ? 1 : 0;
     int bytesUsedFromImage = ( lsb4 ) ? 2 : 4;
 
+    uint8_t  lsb4Shifter[] = {4, 0};
+    uint8_t  lsb2Shifter[] = {6,4,2, 0};
+    int currentShifterIndex = 0 ;
+
     uint8_t  bits[bytesUsedFromImage];
 
+
     for(int i = 0; i < bytesUsedFromImage ; i++){
-        bits[i] = !lsb4 ? ((*shadowPointer & fourSignificant[i]) >> ((bytesUsedFromImage - i -1) * 2)) : ((*shadowPointer & twoSignificant[i]) >> ((bytesUsedFromImage - i -1) * 4));
+        bits[i] = lsb4 ? *shadowPointer & twoSignificant[i] : *shadowPointer & fourSignificant[i] ;
+        bits[i] = lsb4 ? bits[i] >> lsb4Shifter[currentShifterIndex] : bits[i] >>lsb2Shifter[currentShifterIndex];
+        currentShifterIndex++;
     }
 
     int and = lsb4 ? 0xF0 : 0xFC;  // 4 o 6 MSB.
