@@ -68,7 +68,7 @@ void retrieveSecret(shadowGenerator * generator){
             bPoints[i] = generator->generatedShadows[i]->points[currentBlock + 1];
         }
         uint8_t * coefficients = interpolate(k, xCoordinates,  aPoints, bPoints);
-        checkCoefficients(generator->k, coefficients);
+        checkCoefficients(k, coefficients);
         memcpy(imagePointer, coefficients, k); // saving a_0 .... a_k-1 coeff
         memcpy(imagePointer, coefficients + k + 2, k - 2); //save b_2 .. b_k-1 coeff
 
@@ -136,14 +136,18 @@ static uint8_t  * interpolate(uint8_t  k , uint8_t * xCoordinates, uint8_t * aPo
 
 void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
     int valid = 0;
-    for (int i = 0; i < 255; i++){
-        if ( (coefficients[k] = Z_p(- i * coefficients[0])) &&
-                (coefficients[k+1] = Z_p(- i * coefficients[1]))
+    uint8_t  a_0 = Z_p(coefficients[0]) == 0 ? 1 : Z_p(coefficients[0]);
+    uint8_t  a_1= Z_p(coefficients[1]) == 0  ?  1 :  Z_p(coefficients[1]);
+
+
+    for (int i = 0; i < 251; i++){
+        if ( (coefficients[k] = Z_p(- i * a_0 )) &&
+                (coefficients[k+1] = Z_p(- i * a_1) )
         )
             valid = 1;
     }
     if (! valid){
-//        printf("One invalid shadow was provided. ");
+        printf("One invalid shadow was provided. ");
 //        exit(-1);
     }
 

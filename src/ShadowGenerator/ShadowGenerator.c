@@ -40,7 +40,7 @@ void distributeSecret(shadowGenerator * shadowGenerator){
 
         memcpy(aCoefficients, pixelPoints, k);
         memcpy(bCoefficients + 2, pixelPoints + k, k-2 );
-        uint8_t random = rand() + 1 ;  //avoid the random number to be zero.
+        uint8_t random = Z_p(rand() + 1 );  //avoid the random number to be zero.
         a_0 = Z_p(aCoefficients[0]) == 0 ? 1: aCoefficients[0];
         a_1 = Z_p(aCoefficients[1]) == 0 ? 1: aCoefficients[1];
         bCoefficients[0] =  Z_p(- random * a_0);
