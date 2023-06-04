@@ -157,7 +157,7 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
 
 static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points, uint8_t * xCoordinates){
 
-    uint8_t  * coefficients = (uint8_t*) malloc(k * sizeof(uint8_t));
+    uint8_t  * coefficients = malloc(k * sizeof(uint8_t));
 
     int currentCoeff = 0;
     int yPrimes[k];
@@ -177,7 +177,7 @@ static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points, uint8_t * 
             currentCoefficient += Z_p(yPrimes[i]*li);
         }
 
-        coefficients[currentCoeff++] = (uint8_t)Z_p(currentCoefficient);
+        coefficients[currentCoeff++] = Z_p(currentCoefficient);
     }
 
     return coefficients;
