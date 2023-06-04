@@ -73,7 +73,7 @@ void retrieveSecret(shadowGenerator * generator){
         memcpy(imagePointer, coefficients + k + 2, k - 2); //save b_2 .. b_k-1 coeff
 
         imagePointer += (2*k) - 2;
-        currentBlock ++ ;
+        currentBlock += 2 ;
     }
 
 
@@ -148,7 +148,7 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
     }
     if (! valid){
         printf("One invalid shadow was provided. ");
-//        exit(-1);
+        exit(-1);
     }
 
     return ;

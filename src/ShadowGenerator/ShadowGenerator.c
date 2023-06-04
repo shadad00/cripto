@@ -68,6 +68,8 @@ void hideSecret(shadowGenerator * shadowGenerator){
 
         //save the generated image.
         int headerSize = currentImageFile->header->fileSize - currentImageFile->header->imageSize;
+        //re-write the entire file.
+         lseek(currentImageFile->fd, 0, SEEK_SET);
         write(currentImageFile->fd , currentImageFile->header, headerSize);
         write(currentImageFile->fd , currentImageFile->pixels, currentImageFile->header->imageSize);
         close(currentImageFile->fd);
@@ -125,14 +127,16 @@ static shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint32
 }
 
 static uint8_t evaluatePolynomial(struct shadowGenerator * shadowGenerator, uint8_t * coefficients, uint8_t value){
-    int x = 1;
-    int evaluation = 0;
+    int result = 0;
+    int power = 1;
 
-    for(int i = 0 ; i < shadowGenerator->k - 1   ; i++){
-        evaluation += coefficients[i] * x ;
-        x *= value;
+    for (uint8_t i = 0; i <= shadowGenerator->k ; i++) {
+        result += Z_p(coefficients[i] * power);
+        result = Z_p(result);
+        power = Z_p(power * value);
     }
-    return Z_p(evaluation);
+
+    return result;
 }
 
 static void insertBits(uint8_t  * imagePixelPointer, uint8_t  *shadowPointer, uint8_t  k){
