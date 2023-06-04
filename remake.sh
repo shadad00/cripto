@@ -1,4 +1,6 @@
 #!/bin/bash
+make clean
+make all
 cd ./mail2
 rm * 
 cp ../mail/* .

@@ -85,6 +85,7 @@ void retrieveSecret(shadowGenerator * generator){
 
     //save the retrieved image.
     int headerSize = generator->file->header->fileSize - generator->file->header->imageSize;
+    lseek(fd, 0, SEEK_SET);
     write(fd, generator->file->header, headerSize);
     write(fd, generator->file->pixels, generator->file->header->imageSize);
     close(fd);
@@ -136,8 +137,8 @@ static uint8_t  * interpolate(uint8_t  k , uint8_t * xCoordinates, uint8_t * aPo
 
 void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
     int valid = 0;
-    uint8_t  a_0 = Z_p(coefficients[0]) == 0 ? 1 : Z_p(coefficients[0]);
-    uint8_t  a_1= Z_p(coefficients[1]) == 0  ?  1 :  Z_p(coefficients[1]);
+    uint8_t  a_0 = Z_p(coefficients[0]) == 0 ? 1 : coefficients[0];
+    uint8_t  a_1= Z_p(coefficients[1]) == 0  ?  1 :  coefficients[1];
 
 
     for (int i = 0; i < 251; i++){
@@ -158,26 +159,25 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
 static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points, uint8_t * xCoordinates){
 
     uint8_t  * coefficients = malloc(k * sizeof(uint8_t));
-
-    int currentCoeff = 0;
+    int S_i = 0;
     int yPrimes[k];
 
-    while (currentCoeff < k) {
+    while (S_i < k) {
         int currentCoefficient = 0;
-        int top = k-currentCoeff;
+        int neededPoints = k - S_i;
 
-        for (int i = 0; i<top; i++) {
-            int y = currentCoeff == 0 ? points[i] : (yPrimes[i] - coefficients[currentCoeff-1]) * inverses[Z_p(xCoordinates[i])];
+        for (int i = 0; i<neededPoints; i++) {
+            int y = S_i == 0 ? points[i] : (yPrimes[i] - coefficients[S_i-1]) * inverses[Z_p(xCoordinates[i])];
             yPrimes[i]  = Z_p(y);
             int li = 1;
-            for (int j=0; j<top; j++){
+            for (int j=0; j<neededPoints; j++){
                 if( j != i)
                     li *= Z_p(-1*xCoordinates[j]*inverses[Z_p(xCoordinates[i]- xCoordinates[j])]);
             }
             currentCoefficient += Z_p(yPrimes[i]*li);
         }
 
-        coefficients[currentCoeff++] = Z_p(currentCoefficient);
+        coefficients[S_i++] = Z_p(currentCoefficient);
     }
 
     return coefficients;

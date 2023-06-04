@@ -32,15 +32,13 @@ void distributeSecret(shadowGenerator * shadowGenerator){
     uint32_t currentBlock = 0;
     uint8_t * aCoefficients = malloc( k * sizeof (uint8_t));
     uint8_t * bCoefficients= malloc( k * sizeof (uint8_t));
-
-    srand(time(NULL)); //initialize the seed.
     uint8_t a_0, a_1;
 
     while(currentBlock < shadowPoints){
 
         memcpy(aCoefficients, pixelPoints, k);
         memcpy(bCoefficients + 2, pixelPoints + k, k-2 );
-        uint8_t random = Z_p(rand() + 1 );  //avoid the random number to be zero.
+        uint8_t random = (rand() % (P -1)) + 1;
         a_0 = Z_p(aCoefficients[0]) == 0 ? 1: aCoefficients[0];
         a_1 = Z_p(aCoefficients[1]) == 0 ? 1: aCoefficients[1];
         bCoefficients[0] =  Z_p(- random * a_0);
@@ -149,7 +147,6 @@ static void insertBits(uint8_t  * imagePixelPointer, uint8_t  *shadowPointer, ui
 
     uint8_t  bits[bytesUsedFromImage];
 
-
     for(int i = 0; i < bytesUsedFromImage ; i++){
         bits[i] = lsb4 ? *shadowPointer & twoSignificant[i] : *shadowPointer & fourSignificant[i] ;
         bits[i] = lsb4 ? bits[i] >> lsb4Shifter[currentShifterIndex] : bits[i] >>lsb2Shifter[currentShifterIndex];
@@ -158,5 +155,6 @@ static void insertBits(uint8_t  * imagePixelPointer, uint8_t  *shadowPointer, ui
 
     int and = lsb4 ? 0xF0 : 0xFC;  // 4 o 6 MSB.
     for (int i = 0 ; i < bytesUsedFromImage ; i++)
-        imagePixelPointer[i] = Z_p((imagePixelPointer[i] & and) + bits[i]);
+        imagePixelPointer[i] = (imagePixelPointer[i] & and) + bits[i];
+
 }
