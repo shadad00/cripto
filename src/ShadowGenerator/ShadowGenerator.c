@@ -122,7 +122,8 @@ static shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint32
 static uint8_t evaluatePolynomial(struct shadowGenerator * shadowGenerator, uint8_t * coefficients, uint8_t value){
     int x = 1;
     int evaluation = 0;
-    for(int i = shadowGenerator->k - 1 ; i >= 0   ; i--){
+
+    for(int i = 0 ; i < shadowGenerator->k - 1   ; i++){
         evaluation += coefficients[i] * x ;
         x *= value;
     }
