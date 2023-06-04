@@ -47,7 +47,7 @@ void initializeShadows(shadowGenerator * generator){
     int headerSize = currentImageFile->header->fileSize - currentImageFile->header->imageSize;
     generator->file->header = malloc(headerSize * sizeof (uint8_t));
     memcpy(generator->file->header, currentImageFile->header, headerSize);
-    generator->file->pixels = malloc(generator->file->header->imageSize);
+    generator->file->pixels = calloc(generator->file->header->imageSize,1 );
 
 }
 
@@ -70,7 +70,7 @@ void retrieveSecret(shadowGenerator * generator){
         uint8_t * coefficients = interpolate(k, xCoordinates,  aPoints, bPoints);
         checkCoefficients(k, coefficients);
         memcpy(imagePointer, coefficients, k); // saving a_0 .... a_k-1 coeff
-        memcpy(imagePointer, coefficients + k + 2, k - 2); //save b_2 .. b_k-1 coeff
+        memcpy(imagePointer + k, coefficients + k + 2, k - 2); //save b_2 .. b_k-1 coeff
 
         imagePointer += (2*k) - 2;
         currentBlock += 2 ;
