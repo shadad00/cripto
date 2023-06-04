@@ -7,9 +7,9 @@
 static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile);
 
 // take the aPoints and bPoints and make a coefficient vector with the corresponding polynomial.
-static uint8_t  * interpolate(uint8_t  k , uint8_t * aPoints, uint8_t * bPoints);
+static uint8_t  * interpolate(uint8_t  k ,uint8_t * xCoordinates,  uint8_t * aPoints, uint8_t * bPoints);
 //aux function for interpolate one array of points.
-static uint8_t  * interpolatePolynomial(uint8_t n , uint8_t * points) ;
+static uint8_t  * interpolatePolynomial(uint8_t n , uint8_t * points, uint8_t * xCoordinates) ;
 
 
 //check if all shadows are valid by looking the random value that
@@ -56,17 +56,18 @@ void retrieveSecret(shadowGenerator * generator){
     uint8_t  * imagePointer = generator->file->pixels;
     uint32_t currentBlock = 0;
 
+    uint8_t  * xCoordinates = malloc(generator->k);
     uint8_t  * aPoints = malloc(generator->k);
     uint8_t  * bPoints = malloc(generator->k);
 
     while( currentBlock < generator->generatedShadows[0]->pointNumber){
 
-        for (int i = 0; i < k ; i ++){ //todo: shadowNumber is between 1 and k.
-            int shadowNumber = generator->generatedShadows[i]->shadowNumber;
-            aPoints[shadowNumber] = generator->generatedShadows[i]->points[currentBlock];
-            bPoints[shadowNumber] = generator->generatedShadows[i]->points[currentBlock + 1];
+        for (int i = 0; i < k ; i ++){
+            xCoordinates[i] = generator->generatedShadows[i]->shadowNumber;
+            aPoints[i] = generator->generatedShadows[i]->points[currentBlock];
+            bPoints[i] = generator->generatedShadows[i]->points[currentBlock + 1];
         }
-        uint8_t * coefficients = interpolate(k, aPoints, bPoints);
+        uint8_t * coefficients = interpolate(k, xCoordinates,  aPoints, bPoints);
         checkCoefficients(generator->k, coefficients);
         memcpy(imagePointer, coefficients, k); // saving a_0 .... a_k-1 coeff
         memcpy(imagePointer, coefficients + k + 2, k - 2); //save b_2 .. b_k-1 coeff
@@ -125,10 +126,10 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile){
 }
 
 
-static uint8_t  * interpolate(uint8_t  k , uint8_t * aPoints, uint8_t * bPoints){
+static uint8_t  * interpolate(uint8_t  k , uint8_t * xCoordinates, uint8_t * aPoints, uint8_t * bPoints){
     uint8_t  * coefficient = malloc( 2* k* sizeof(uint8_t));
-    memcpy(coefficient, interpolatePolynomial(k, aPoints), k);
-    memcpy(coefficient + k , interpolatePolynomial(k , bPoints) , k);
+    memcpy(coefficient, interpolatePolynomial(k, aPoints, xCoordinates), k);
+    memcpy(coefficient + k , interpolatePolynomial(k , bPoints, xCoordinates) , k);
     return  coefficient;
 }
 
@@ -150,7 +151,7 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
 }
 
 
-static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points){
+static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points, uint8_t * xCoordinates){
 
     uint8_t  * coefficients = (uint8_t*) malloc(k * sizeof(uint8_t));
 
@@ -161,12 +162,12 @@ static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points){
 
         int top = k-qc;
         for (int i = 0; i<top; i++) {
-            int y = !qc ? points[i] : (yPrimes[i] - coefficients[qc-1]) * inverses[i];
+            int y = !qc ? points[i] : (yPrimes[i] - coefficients[qc-1]) * inverses[Z_p(xCoordinates[i])];
             y = Z_p(y);
             yPrimes[i] = y;
             int li = 1;
             for (int j=0; j<top; j++)
-                li *= i == j ? 1 : Z_p(-1*j*inverses[i-j]);
+                li *= i == j ? 1 : Z_p(-1*xCoordinates[j]*inverses[Z_p(xCoordinates[i]- xCoordinates[j])]);
             currentCoefficient += Z_p(y*li);
         }
 
