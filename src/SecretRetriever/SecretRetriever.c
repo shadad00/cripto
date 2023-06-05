@@ -136,8 +136,8 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
     uint8_t  a_1 = mod(coefficients[1]) == 0  ?  1 :  coefficients[1];
 
     for (int i = 0; i < 251; i++){
-        if ( (coefficients[k] = mul(mod(-i) , a_0 )) &&
-                (coefficients[k+1] = mul(mod(-i),  a_1) )
+        if ( (coefficients[k] == mul(mod(-i) , a_0 )) &&
+                (coefficients[k+1] == mul(mod(-i),  a_1) )
         )
             valid = 1;
     }
