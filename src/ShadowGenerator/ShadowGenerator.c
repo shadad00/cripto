@@ -38,11 +38,11 @@ void distributeSecret(shadowGenerator * shadowGenerator){
 
         memcpy(aCoefficients, pixelPoints, k);
         memcpy(bCoefficients + 2, pixelPoints + k, k-2 );
-        uint8_t random = (rand() % (P -1)) + 1;
-        a_0 = Z_p(aCoefficients[0]) == 0 ? 1: aCoefficients[0];
-        a_1 = Z_p(aCoefficients[1]) == 0 ? 1: aCoefficients[1];
-        bCoefficients[0] =  Z_p(- random * a_0);
-        bCoefficients[1] =  Z_p(- random * a_1);
+        uint8_t random = (rand() % (P - 2)) + 1;
+        a_0 = mod(aCoefficients[0]) == 0 ? 1: aCoefficients[0];
+        a_1 = mod(aCoefficients[1]) == 0 ? 1: aCoefficients[1];
+        bCoefficients[0] =  mod(mul(mod(- random) , a_0) );
+        bCoefficients[1] =  mod(mul(mod(- random ), a_1));
 
         for (int j = 0; j < shadowGenerator->n; j++){
             shadowArray[j]->points[currentBlock] = evaluatePolynomial(shadowGenerator,
@@ -125,13 +125,14 @@ static shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint32
 }
 
 static uint8_t evaluatePolynomial(struct shadowGenerator * shadowGenerator, uint8_t * coefficients, uint8_t value){
-    int result = 0;
-    int power = 1;
+    uint8_t result = 0;
+    uint8_t power = 1;
 
-    for (uint8_t i = 0; i <= shadowGenerator->k ; i++) {
-        result += Z_p(coefficients[i] * power);
-        result = Z_p(result);
-        power = Z_p(power * value);
+    uint8_t x2 = mod(value);
+
+    for (uint8_t i = 0; i < shadowGenerator->k ; i++) {
+        result = sum( result , mul(coefficients[i] , power));
+        power = mul(power ,x2);
     }
 
     return result;

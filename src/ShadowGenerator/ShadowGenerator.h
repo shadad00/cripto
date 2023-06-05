@@ -12,13 +12,11 @@
 #include <dirent.h>
 #include "../Bmp/bmp.h"
 #include "../utils.h"
-#define P 251
-#define Z_p(x) ( (x) < 0 ? (((x)*(-1)*(P-1))%P) : ((x)%P))
 
 
 typedef struct shadow{
     uint8_t shadowNumber;
-    uint32_t pointNumber;
+    uint64_t pointNumber;
     uint8_t * points;
 } shadow;
 
@@ -38,7 +36,6 @@ void distributeSecret(shadowGenerator * shadowGenerator);
 
 //hides the evaluation by using the lbx method.
 void hideSecret(shadowGenerator * shadowGenerator);
-
 
 // function for accessing the bmp files on the directory passed as parameter.
 void openDirectory(shadowGenerator * generator, char * directoryPath);

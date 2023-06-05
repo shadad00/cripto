@@ -54,7 +54,7 @@ void initializeShadows(shadowGenerator * generator){
 void retrieveSecret(shadowGenerator * generator){
     uint8_t  k = generator->k ;
     uint8_t  * imagePointer = generator->file->pixels;
-    uint32_t currentBlock = 0;
+    uint64_t currentBlock = 0;
 
     uint8_t  * xCoordinates = malloc(generator->k);
     uint8_t  * aPoints = malloc(generator->k);
@@ -105,20 +105,16 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile){
     int lsb4 = ( k == 3 || k == 4 ) ? 1 : 0;
     int ImageBytesToShadowByte= ( lsb4 ) ? 2 : 4; // if lsb4 you need two uint8_t from image to generate a shadow uint8_t
     int bitOperator = lsb4 ? 0x0f:0x03; // four or two least significant bits.
-    uint8_t  lsb4Shifter[] = {4, 0};
-    uint8_t  lsb2Shifter[] = {6,4,2, 0};
-
+    uint8_t shifter = lsb4 ? 4 : 2;
 
 
     uint64_t currentShadowBlock = 0;
     while(currentShadowBlock < shadow->pointNumber){
         shadow->points[currentShadowBlock] = 0;
-        uint8_t  currentShifter = 0;
         for(uint64_t i = 2 * currentShadowBlock ; i < (2* currentShadowBlock + ImageBytesToShadowByte); i++){
             shadow->points[currentShadowBlock] += imageFile->pixels[i]  & bitOperator;
-            uint8_t shifter = lsb4 ? lsb4Shifter[currentShifter] : lsb2Shifter[currentShifter];
-            currentShifter++;
-            shadow->points[currentShadowBlock] = shadow->points[currentShadowBlock] << shifter;
+            if (i != (2* currentShadowBlock + ImageBytesToShadowByte) - 1 )
+                shadow->points[currentShadowBlock] = shadow->points[currentShadowBlock] << shifter;
         }
         currentShadowBlock++;
     }
@@ -137,13 +133,13 @@ static uint8_t  * interpolate(uint8_t  k , uint8_t * xCoordinates, uint8_t * aPo
 
 void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
     int valid = 0;
-    uint8_t  a_0 = Z_p(coefficients[0]) == 0 ? 1 : coefficients[0];
-    uint8_t  a_1= Z_p(coefficients[1]) == 0  ?  1 :  coefficients[1];
+    uint8_t  a_0 = mod(coefficients[0]) == 0 ? 1 : coefficients[0];
+    uint8_t  a_1= mod(coefficients[1]) == 0  ?  1 :  coefficients[1];
 
 
     for (int i = 0; i < 251; i++){
-        if ( (coefficients[k] = Z_p(- i * a_0 )) &&
-                (coefficients[k+1] = Z_p(- i * a_1) )
+        if ( (coefficients[k] = mul(mod(-i) , a_0 )) &&
+                (coefficients[k+1] = mul(mod(-i),  a_1) )
         )
             valid = 1;
     }
@@ -159,25 +155,24 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
 static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points, uint8_t * xCoordinates){
 
     uint8_t  * coefficients = malloc(k * sizeof(uint8_t));
-    int S_i = 0;
-    int yPrimes[k];
+    uint8_t S_i = 0;
+    uint8_t yPrimes[k];
 
     while (S_i < k) {
-        int currentCoefficient = 0;
-        int neededPoints = k - S_i;
+        uint8_t currentCoefficient = 0;
+        uint8_t neededPoints = k - S_i;
 
-        for (int i = 0; i<neededPoints; i++) {
-            int y = S_i == 0 ? points[i] : (yPrimes[i] - coefficients[S_i-1]) * inverses[Z_p(xCoordinates[i])];
-            yPrimes[i]  = Z_p(y);
-            int li = 1;
+        for (uint8_t i = 0; i<neededPoints; i++) {
+            yPrimes[i] = (S_i == 0) ? mod(points[i]) : modDiv(sub(yPrimes[i],coefficients[S_i-1]) ,xCoordinates[i] );
+            uint8_t li = 1;
             for (int j=0; j<neededPoints; j++){
                 if( j != i)
-                    li *= Z_p(-1*xCoordinates[j]*inverses[Z_p(xCoordinates[i]- xCoordinates[j])]);
+                    li = mul(li , mul(-1, modDiv(xCoordinates[j], sub(xCoordinates[i], xCoordinates[j]))));
             }
-            currentCoefficient += Z_p(yPrimes[i]*li);
+            currentCoefficient = sum(currentCoefficient , mul(yPrimes[i],li));
         }
 
-        coefficients[S_i++] = Z_p(currentCoefficient);
+        coefficients[S_i++] = currentCoefficient;
     }
 
     return coefficients;
