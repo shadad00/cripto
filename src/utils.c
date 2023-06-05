@@ -48,7 +48,6 @@ void retrieve(struct params * params ){
 }
 
 
-
 uint8_t  sum(uint64_t x , uint64_t y){
     return mod(x+y);
 }

@@ -56,11 +56,11 @@ void retrieveSecret(shadowGenerator * generator){
     uint8_t  * imagePointer = generator->file->pixels;
     uint64_t currentBlock = 0;
 
-    uint8_t  * xCoordinates = malloc(generator->k);
-    uint8_t  * aPoints = malloc(generator->k);
-    uint8_t  * bPoints = malloc(generator->k);
+    uint8_t  * xCoordinates = malloc(k);
+    uint8_t  * aPoints = malloc(k);
+    uint8_t  * bPoints = malloc(k);
 
-    while( currentBlock < generator->generatedShadows[0]->pointNumber){
+    while( currentBlock < ( (generator->file->header->imageSize) / (k - 1)) ){
 
         for (int i = 0; i < k ; i ++){
             xCoordinates[i] = generator->generatedShadows[i]->shadowNumber;
@@ -100,7 +100,7 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile){
     shadow * shadow = malloc(sizeof (shadow));
     shadow->shadowNumber = imageFile->header->reserved1;
     shadow->pointNumber = imageFile->header->imageSize / (k -1);
-    shadow->points = malloc(shadow->pointNumber);
+    shadow->points = calloc(shadow->pointNumber,1);
 
     int lsb4 = ( k == 3 || k == 4 ) ? 1 : 0;
     int ImageBytesToShadowByte= ( lsb4 ) ? 2 : 4; // if lsb4 you need two uint8_t from image to generate a shadow uint8_t
@@ -110,10 +110,9 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile){
 
     uint64_t currentShadowBlock = 0;
     while(currentShadowBlock < shadow->pointNumber){
-        shadow->points[currentShadowBlock] = 0;
-        for(uint64_t i = 2 * currentShadowBlock ; i < (2* currentShadowBlock + ImageBytesToShadowByte); i++){
+        for(uint64_t i = (ImageBytesToShadowByte) * currentShadowBlock ; i < (ImageBytesToShadowByte* ( currentShadowBlock + 1)); i++){
             shadow->points[currentShadowBlock] += imageFile->pixels[i]  & bitOperator;
-            if (i != (2* currentShadowBlock + ImageBytesToShadowByte) - 1 )
+            if (i + 1 != ((ImageBytesToShadowByte* ( currentShadowBlock + 1))) )
                 shadow->points[currentShadowBlock] = shadow->points[currentShadowBlock] << shifter;
         }
         currentShadowBlock++;
@@ -134,8 +133,7 @@ static uint8_t  * interpolate(uint8_t  k , uint8_t * xCoordinates, uint8_t * aPo
 void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
     int valid = 0;
     uint8_t  a_0 = mod(coefficients[0]) == 0 ? 1 : coefficients[0];
-    uint8_t  a_1= mod(coefficients[1]) == 0  ?  1 :  coefficients[1];
-
+    uint8_t  a_1 = mod(coefficients[1]) == 0  ?  1 :  coefficients[1];
 
     for (int i = 0; i < 251; i++){
         if ( (coefficients[k] = mul(mod(-i) , a_0 )) &&
@@ -154,25 +152,22 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
 
 static uint8_t  * interpolatePolynomial(uint8_t k , uint8_t * points, uint8_t * xCoordinates){
 
-    uint8_t  * coefficients = malloc(k * sizeof(uint8_t));
-    uint8_t S_i = 0;
+    uint8_t  * coefficients = calloc(k , 1);
     uint8_t yPrimes[k];
 
-    while (S_i < k) {
+    for( uint8_t S_i = 0; S_i < k ; S_i ++ ) {
         uint8_t currentCoefficient = 0;
         uint8_t neededPoints = k - S_i;
 
-        for (uint8_t i = 0; i<neededPoints; i++) {
-            yPrimes[i] = (S_i == 0) ? mod(points[i]) : modDiv(sub(yPrimes[i],coefficients[S_i-1]) ,xCoordinates[i] );
+        for (uint8_t i = 0; i < neededPoints; i++) {
+            yPrimes[i] = (S_i == 0) ? mod(points[i]) : modDiv(sub(yPrimes[i], coefficients[S_i - 1]), xCoordinates[i]);
             uint8_t li = 1;
-            for (int j=0; j<neededPoints; j++){
-                if( j != i)
-                    li = mul(li , mul(-1, modDiv(xCoordinates[j], sub(xCoordinates[i], xCoordinates[j]))));
-            }
-            currentCoefficient = sum(currentCoefficient , mul(yPrimes[i],li));
+            for (int j = 0; j < neededPoints; j++)
+                if (j != i)
+                    li = mul(li, mul(-1, modDiv(xCoordinates[j], sub(xCoordinates[i], xCoordinates[j]))));
+            currentCoefficient = sum(currentCoefficient, mul(yPrimes[i], li));
         }
-
-        coefficients[S_i++] = currentCoefficient;
+        coefficients[S_i] = currentCoefficient;
     }
 
     return coefficients;
