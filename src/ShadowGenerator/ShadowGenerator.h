@@ -12,6 +12,8 @@
 #include <dirent.h>
 #include "../Bmp/bmp.h"
 #include "../utils.h"
+#include "../ModularOperations.h"
+
 
 
 typedef struct shadow{
