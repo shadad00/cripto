@@ -91,7 +91,7 @@ void openDirectory(shadowGenerator * generator, char * directoryPath){
     DIR * directory = opendir(directoryPath);
     if(directory == NULL){
         perror("Unable to open the given directory");
-        return;
+        exit(EXIT_FAILURE);
     }
     char ** fileNames = malloc(generator->n * sizeof(char * )) ;
 

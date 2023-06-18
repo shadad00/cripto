@@ -143,7 +143,7 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
     }
     if (! valid){
         printf("One invalid shadow was provided. ");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     return ;

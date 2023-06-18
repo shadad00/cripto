@@ -8,14 +8,14 @@ bmpFile *  openBmpFile(const char * path){
     int fd = open(path, O_RDWR);
     if (fd == -1) {
         perror("open");
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
     struct stat fileStats;
     if (fstat(fd, &fileStats ) != 0){
         perror("fstat");
         close(fd);
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
     int fileSize = fileStats.st_size;
@@ -25,7 +25,7 @@ bmpFile *  openBmpFile(const char * path){
 
     if ( read(fd, filePointer  ,fileSize) != fileSize){
         perror("Unable to read file");
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
     bmpHeader * headerPointer = (bmpHeader *) filePointer;
