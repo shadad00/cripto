@@ -108,6 +108,12 @@ void openDirectory(shadowGenerator * generator, char * directoryPath){
         strcpy(fileNames[currentFile] + directoryLength + 1, entry->d_name);
         currentFile ++;
     }
+
+    if (currentFile  < generator->k){
+        printf("Incorrect number of shadows provided.\n");
+        exit(EXIT_FAILURE);
+    }
+
     generator->imageFiles = fileNames;
 }
 
