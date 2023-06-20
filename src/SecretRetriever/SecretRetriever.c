@@ -8,14 +8,13 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile);
 
 // take the aPoints and bPoints and make a coefficient vector with the corresponding polynomial.
 static uint8_t  * interpolate(uint8_t  k ,uint8_t * xCoordinates,  uint8_t * aPoints, uint8_t * bPoints);
+
 //aux function for interpolate one array of points.
 static uint8_t  * interpolatePolynomial(uint8_t n , uint8_t * points, uint8_t * xCoordinates) ;
-
 
 //check if all shadows are valid by looking the random value that
 // validates the equation on the generation.
 static void checkCoefficients(uint8_t  k ,uint8_t * coefficients);
-
 
 
 shadowGenerator * initRetriever(struct params * params){
@@ -27,8 +26,6 @@ shadowGenerator * initRetriever(struct params * params){
     strcpy(shadowGenerator->creatingFileName, params->file);
     return shadowGenerator;
 }
-
-
 
 void initializeShadows(shadowGenerator * generator){
     shadow ** parsedShadows = malloc(generator->k * (sizeof(shadow *) ));
@@ -52,28 +49,32 @@ void initializeShadows(shadowGenerator * generator){
 }
 
 void retrieveSecret(shadowGenerator * generator){
-    uint8_t  * imagePointer = generator->file->pixels;
 
     uint8_t  k = generator->k ;
     uint8_t  * xCoordinates = malloc(k);
     uint8_t  * aPoints = malloc(k);
     uint8_t  * bPoints = malloc(k);
 
-    uint64_t blockNumber = ( (generator->file->header->imageSize) / (k - 1));
+    uint8_t  * imagePointer = generator->file->pixels;
+    uint64_t totalBlock = ((generator->file->header->imageSize) / (k - 1));
 
-    for(uint64_t currentBlock = 0; currentBlock < blockNumber; currentBlock+=2){
+    for(uint64_t currentBlock = 0; currentBlock < totalBlock; currentBlock+=2, imagePointer += (2 * k) - 2){
 
         for (int i = 0; i < k ; i ++){
             xCoordinates[i] = generator->generatedShadows[i]->shadowNumber;
             aPoints[i] = generator->generatedShadows[i]->points[currentBlock];
             bPoints[i] = generator->generatedShadows[i]->points[currentBlock + 1];
         }
+
+        //get the polynomial that matches the shadows evaluations.
         uint8_t * coefficients = interpolate(k, xCoordinates,  aPoints, bPoints);
+
+        //check if there is some valid nonce value.
         checkCoefficients(k, coefficients);
+
+        //save the coefficients on the image.
         memcpy(imagePointer, coefficients, k); // saving a_0 .... a_k-1 coeff
         memcpy(imagePointer + k, coefficients + k + 2, k - 2); //save b_2 .. b_k-1 coeff
-
-        imagePointer += (2*k) - 2;
     }
 
 
