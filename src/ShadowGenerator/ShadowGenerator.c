@@ -3,11 +3,10 @@
 //
 #include "ShadowGenerator.h"
 
-uint8_t fourSignificant[] = {0xC0, 0x30, 0x0C, 0x03};
-uint8_t twoSignificant[] = {0xF0, 0x0F};
 
 
-static  shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint32_t shadowPoints);
+
+static  shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint64_t shadowPoints);
 static uint8_t evaluatePolynomial(shadowGenerator * shadowGenerator, uint8_t * coefficients, uint8_t value);
 static void insertBits(uint8_t  *imagePixelPointer, uint8_t  *shadowPointer, uint8_t k);
 static void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow);
@@ -24,20 +23,19 @@ shadowGenerator * initialize(struct params * params){
 
 
 void distributeSecret(shadowGenerator * shadowGenerator){
-    uint32_t shadowPoints = (shadowGenerator->file->header->imageSize) / (shadowGenerator->k - 1);
+    uint64_t shadowPoints = (shadowGenerator->file->header->imageSize) / (shadowGenerator->k - 1);
     struct shadow ** shadowArray  = initializeShadowArray(shadowGenerator, shadowPoints);
 
     uint8_t * pixelPoints = shadowGenerator->file->pixels;
     uint8_t k = shadowGenerator->k;
-    uint32_t currentBlock = 0;
     uint8_t * aCoefficients = malloc( k * sizeof (uint8_t));
     uint8_t * bCoefficients= malloc( k * sizeof (uint8_t));
     uint8_t a_0, a_1;
 
-    while(currentBlock < shadowPoints){
-
+    for( uint64_t currentBlock = 0; currentBlock < shadowPoints;  currentBlock +=2){
         memcpy(aCoefficients, pixelPoints, k);
         memcpy(bCoefficients + 2, pixelPoints + k, k-2 );
+
         uint8_t random = (rand() % (P - 2)) + 1;
         a_0 = mod(aCoefficients[0]) == 0 ? 1: aCoefficients[0];
         a_1 = mod(aCoefficients[1]) == 0 ? 1: aCoefficients[1];
@@ -52,7 +50,6 @@ void distributeSecret(shadowGenerator * shadowGenerator){
         }
 
         pixelPoints += (2 * k) - 2;
-        currentBlock +=2;
     }
 
     shadowGenerator->generatedShadows =  shadowArray;
@@ -90,7 +87,7 @@ static void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow){
 void openDirectory(shadowGenerator * generator, char * directoryPath){
     DIR * directory = opendir(directoryPath);
     if(directory == NULL){
-        perror("Unable to open the given directory");
+        perror("Unable to open the given directory.\n");
         exit(EXIT_FAILURE);
     }
     char ** fileNames = malloc(generator->n * sizeof(char * )) ;
@@ -117,7 +114,7 @@ void openDirectory(shadowGenerator * generator, char * directoryPath){
     generator->imageFiles = fileNames;
 }
 
-static shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint32_t shadowPoints){
+static shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint64_t shadowPoints){
 
      shadow ** shadowArray = malloc(shadowGenerator->n * sizeof(shadow *));
     //initialize all shadow structures.
@@ -143,6 +140,10 @@ static uint8_t evaluatePolynomial(struct shadowGenerator * shadowGenerator, uint
 
     return result;
 }
+
+
+uint8_t fourSignificant[] = {0xC0, 0x30, 0x0C, 0x03};
+uint8_t twoSignificant[] = {0xF0, 0x0F};
 
 static void insertBits(uint8_t  * imagePixelPointer, uint8_t  *shadowPointer, uint8_t  k){
     int lsb4 = ( k == 3 || k == 4 ) ? 1 : 0;

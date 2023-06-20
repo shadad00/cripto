@@ -13,7 +13,7 @@ static uint8_t  * interpolatePolynomial(uint8_t n , uint8_t * points, uint8_t * 
 
 
 //check if all shadows are valid by looking the random value that
-// valids the equation on the generation.
+// validates the equation on the generation.
 static void checkCoefficients(uint8_t  k ,uint8_t * coefficients);
 
 
@@ -52,15 +52,16 @@ void initializeShadows(shadowGenerator * generator){
 }
 
 void retrieveSecret(shadowGenerator * generator){
-    uint8_t  k = generator->k ;
     uint8_t  * imagePointer = generator->file->pixels;
-    uint64_t currentBlock = 0;
 
+    uint8_t  k = generator->k ;
     uint8_t  * xCoordinates = malloc(k);
     uint8_t  * aPoints = malloc(k);
     uint8_t  * bPoints = malloc(k);
 
-    while( currentBlock < ( (generator->file->header->imageSize) / (k - 1)) ){
+    uint64_t blockNumber = ( (generator->file->header->imageSize) / (k - 1));
+
+    for(uint64_t currentBlock = 0; currentBlock < blockNumber; currentBlock+=2){
 
         for (int i = 0; i < k ; i ++){
             xCoordinates[i] = generator->generatedShadows[i]->shadowNumber;
@@ -73,14 +74,13 @@ void retrieveSecret(shadowGenerator * generator){
         memcpy(imagePointer + k, coefficients + k + 2, k - 2); //save b_2 .. b_k-1 coeff
 
         imagePointer += (2*k) - 2;
-        currentBlock += 2 ;
     }
 
 
     int fd = open(generator->creatingFileName, O_WRONLY | O_CREAT);
     if (fd == -1) {
-        perror("open");
-        return ;
+        printf("Unable to create the file for the retrieved image.\n");
+        exit(EXIT_FAILURE) ;
     }
 
     //save the retrieved image.
@@ -90,9 +90,6 @@ void retrieveSecret(shadowGenerator * generator){
     write(fd, generator->file->pixels, generator->file->header->imageSize);
     close(fd);
 }
-
-
-
 
 
 
@@ -107,16 +104,13 @@ static shadow * fromImageToShadow(uint8_t k ,bmpFile * imageFile){
     int bitOperator = lsb4 ? 0x0f:0x03; // four or two least significant bits.
     uint8_t shifter = lsb4 ? 4 : 2;
 
-
-    uint64_t currentShadowBlock = 0;
-    while(currentShadowBlock < shadow->pointNumber){
-        for(uint64_t i = (ImageBytesToShadowByte) * currentShadowBlock ; i < (ImageBytesToShadowByte* ( currentShadowBlock + 1)); i++){
+    for ( uint64_t currentShadowBlock = 0; currentShadowBlock < shadow->pointNumber ; currentShadowBlock++)
+       for(uint64_t i = (ImageBytesToShadowByte) * currentShadowBlock ;
+       i < (ImageBytesToShadowByte* ( currentShadowBlock + 1)); i++){
             shadow->points[currentShadowBlock] += imageFile->pixels[i]  & bitOperator;
             if (i + 1 != ((ImageBytesToShadowByte* ( currentShadowBlock + 1))) )
                 shadow->points[currentShadowBlock] = shadow->points[currentShadowBlock] << shifter;
         }
-        currentShadowBlock++;
-    }
 
     return shadow;
 }
@@ -131,7 +125,6 @@ static uint8_t  * interpolate(uint8_t  k , uint8_t * xCoordinates, uint8_t * aPo
 
 
 void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
-    int valid = 0;
     uint8_t  a_0 = mod(coefficients[0]) == 0 ? 1 : coefficients[0];
     uint8_t  a_1 = mod(coefficients[1]) == 0  ?  1 :  coefficients[1];
 
@@ -139,14 +132,11 @@ void checkCoefficients(uint8_t  k ,uint8_t * coefficients){
         if ( (coefficients[k] == mul(mod(-i) , a_0 )) &&
                 (coefficients[k+1] == mul(mod(-i),  a_1) )
         )
-            valid = 1;
-    }
-    if (! valid){
-        printf("One invalid shadow was provided. ");
-        exit(EXIT_FAILURE);
+            return;
     }
 
-    return ;
+    printf("One invalid shadow was provided. ");
+    exit(EXIT_FAILURE);
 }
 
 
