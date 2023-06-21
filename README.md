@@ -19,15 +19,15 @@ make all
 
 
 ## Distribute 🚀
-A secret, k and the images where the secret will be hidden must be provided. The provided path must be absolute.
+A secret, k and the images where the secret will be hidden must be provided.
 ```bash
-./ss d secret k absolute-path-to-the-images
+./ss d secret k path-to-the-images
 ```
 
 ## Recover 🚀
-The k and the images to rebuild the secret must be provided. The reconstruction will be in the file named 'generated-file'.The provided path must be absolute.
+The k and the images to rebuild the secret must be provided. The reconstruction will be in the file named 'generated-file'.
 ```bash
-./ss d generated-file k absolute-path-to-the-images
+./ss d generated-file k path-to-the-images
 ```
 
 

@@ -87,11 +87,6 @@ static void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow){
 void openDirectory(shadowGenerator * generator, char * directoryPath){
     DIR * directory = opendir(directoryPath);
 
-    if(directoryPath[0] != '/'){
-        printf("The provided path must be an absolute one. \n");
-        exit(EXIT_FAILURE) ;
-    }
-
     if(directory == NULL){
         perror("Unable to open the given directory.\n");
         exit(EXIT_FAILURE);
@@ -105,9 +100,9 @@ void openDirectory(shadowGenerator * generator, char * directoryPath){
             continue;
         }
         uint64_t directoryLength = strlen(directoryPath);
-        fileNames[currentFile] = malloc(directoryLength + 1 + strlen(entry->d_name));
-        strcpy(fileNames[currentFile], directoryPath);
-        strcpy(fileNames[currentFile] + directoryLength, "/");
+        fileNames[currentFile] = malloc(directoryLength + 1 + strlen(entry->d_name) + 1);
+        strncpy(fileNames[currentFile], directoryPath, directoryLength);
+        strncpy(fileNames[currentFile] + directoryLength, "/", 2);
         strcpy(fileNames[currentFile] + directoryLength + 1, entry->d_name);
         currentFile ++;
     }

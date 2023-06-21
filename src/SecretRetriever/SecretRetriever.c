@@ -22,7 +22,7 @@ shadowGenerator * initRetriever(struct params * params){
     shadowGenerator->k = params->k;
     shadowGenerator->n = params -> n;
     openDirectory(shadowGenerator, params->directory);
-    shadowGenerator->creatingFileName = malloc(strlen(params->file));
+    shadowGenerator->creatingFileName = malloc(strlen(params->file) + 1 );
     strcpy(shadowGenerator->creatingFileName, params->file);
     return shadowGenerator;
 }
