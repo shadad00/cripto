@@ -13,12 +13,12 @@ static void hideShadow(uint8_t  k , bmpFile * image, shadow * hidingShadow);
 
 
 shadowGenerator * initialize(struct params * params){
-    struct shadowGenerator * shadowGenerator = malloc(sizeof(shadowGenerator));
-    shadowGenerator->file = openBmpFile(params->file);
-    shadowGenerator->k = params->k;
-    shadowGenerator->n = params -> n;
-    openDirectory(shadowGenerator, params->directory);
-    return shadowGenerator;
+    struct shadowGenerator * generator = malloc(sizeof(shadowGenerator));
+    generator->file = openBmpFile(params->file);
+    generator->k = params->k;
+    generator->n = params -> n;
+    openDirectory(generator, params->directory);
+    return generator;
 }
 
 
@@ -28,8 +28,8 @@ void distributeSecret(shadowGenerator * shadowGenerator){
 
     uint8_t * pixelPoints = shadowGenerator->file->pixels;
     uint8_t k = shadowGenerator->k;
-    uint8_t * aCoefficients = malloc( k * sizeof (uint8_t));
-    uint8_t * bCoefficients= malloc( k * sizeof (uint8_t));
+    uint8_t * aCoefficients = malloc( k);
+    uint8_t * bCoefficients= malloc( k );
     uint8_t a_0, a_1;
 
     for( uint64_t currentBlock = 0; currentBlock < shadowPoints;  currentBlock +=2){
@@ -123,7 +123,7 @@ static shadow ** initializeShadowArray(shadowGenerator * shadowGenerator, uint64
         shadowArray[i] = malloc(sizeof(struct shadow));
         shadowArray[i]->shadowNumber = i + 1;
         shadowArray[i]->pointNumber = shadowPoints;
-        shadowArray[i]->points = malloc(shadowPoints * sizeof (uint8_t));
+        shadowArray[i]->points = malloc(shadowPoints);
     }
     return  shadowArray;
 }
